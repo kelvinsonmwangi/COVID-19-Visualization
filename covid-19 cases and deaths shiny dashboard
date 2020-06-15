@@ -1,0 +1,44 @@
+# Save the codes below in a script and name it ui
+library(shiny)
+
+shinyUI(
+  pageWithSidebar(
+  headerPanel("COVID-19 Total cases and deaths tracker"),
+  sidebarPanel(
+    selectInput("Country", "Please select country", 
+                choices = data$location)
+  ),
+    mainPanel(
+    plotOutput("myplot")
+    )
+  )
+)
+  
+ # Save the codes below in a script and name it server
+ shinyServer(
+  function(input, output, session){
+    library(tidyverse)
+    
+    output$myplot <- renderPlot({
+      data <- read_csv("https://covid.ourworldindata.org/data/ecdc/full_data.csv") %>% 
+        select(date, location, total_cases, total_deaths) %>% 
+        pivot_longer( -c (date, location), names_to = "event", values_to = "count")
+      
+      
+      ggplot(data = filter(data, location == input$Country), aes(x = date, y = count, color = event)) +
+        geom_line(size = 1.5) +
+        theme_bw() +
+        theme(
+          axis.title.x = element_blank(),
+          axis.title.y = element_text(face = "bold", size = 13),
+          axis.text = element_text(face = "bold", size = 12),
+          legend.title = element_blank(),
+          legend.text = element_text(face = "bold", size =11),
+          legend.position = "bottom"
+        )
+      
+    })
+  }
+)
+# Run the app using
+runApp()
